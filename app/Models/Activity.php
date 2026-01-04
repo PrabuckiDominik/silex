@@ -15,7 +15,7 @@ class Activity extends Model
         'name',
         'type',
         'note',
-        'photo_url',
+        'photo_path',
         'distance',
     ];
 
@@ -29,5 +29,9 @@ class Activity extends Model
 
     public function user() {
         return $this->belongsTo(User::class);
+    }
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo_path ? route('activities.photo', $this) : null;
     }
 }

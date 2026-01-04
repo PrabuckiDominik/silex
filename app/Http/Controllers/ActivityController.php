@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Storage;
 use App\Models\Activity;
 use Illuminate\Http\Request;
 
@@ -23,14 +23,19 @@ class ActivityController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $activity->update([
-            'ended_at' => $request->input('ended_at') ?? now(),
-            'name' => $request->input('name'),
-            'type' => $request->input('type'),
-            'note' => $request->input('note'),
-            'photo_url' => $request->input('photo_url'),
-            'distance' => $request->input('distance'),
-        ]);
+        $data = $request->only(['name', 'type', 'note', 'distance']);
+        $data['ended_at'] = $request->input('ended_at') ?? now();
+
+        if ($request->hasFile('photo')) {
+            if ($activity->photo_path) {
+                Storage::disk('private')->delete($activity->photo_path);
+            }
+
+            $path = $request->file('photo')->store('activities', 'private');
+            $data['photo_path'] = $path;
+        }
+
+        $activity->update($data);
 
         return response()->json($activity);
     }
@@ -104,6 +109,18 @@ class ActivityController extends Controller
                 'time_human' => $this->formatDuration($totalTimeSeconds),
             ],
         ]);
+    }
+    public function photo(Activity $activity)
+    {
+        if ($activity->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if (!$activity->photo_path || !Storage::disk('private')->exists($activity->photo_path)) {
+            abort(404);
+        }
+
+        return response()->file(Storage::disk('private')->path($activity->photo_path));
     }
     private function formatDuration(int $seconds): string
     {
