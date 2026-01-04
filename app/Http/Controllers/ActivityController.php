@@ -46,4 +46,71 @@ class ActivityController extends Controller
             'message' => 'Activity deleted successfully'
         ]);
     }
+    public function index(Request $request)
+    {
+        $activities = $request->user()->activities()->orderBy('started_at', 'desc')->get();
+
+        return response()->json($activities);
+    }
+    public function show(Activity $activity, Request $request)
+    {
+        if ($activity->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        return response()->json($activity);
+    }
+    public function stats(Request $request)
+    {
+        $user = $request->user();
+
+        $activities = $user->activities()
+            ->whereNotNull('ended_at')
+            ->get();
+
+        $totalActivities = $activities->count();
+
+        $totalDistance = $activities->sum('distance');
+
+        $totalTimeSeconds = $activities->sum(function ($activity) {
+            return $activity->started_at && $activity->ended_at
+                ? $activity->started_at->diffInSeconds($activity->ended_at)
+                : 0;
+        });
+
+        $monthly = $activities
+            ->groupBy(fn ($a) => $a->started_at->format('Y-m'))
+            ->map(function ($group, $month) {
+
+                $time = $group->sum(function ($activity) {
+                    return $activity->started_at->diffInSeconds($activity->ended_at);
+                });
+
+                return [
+                    'month' => $month,
+                    'activities' => $group->count(),
+                    'distance' => $group->sum('distance'),
+                    'time_seconds' => $time,
+                    'time_human' => $this->formatDuration($time),
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'overall' => [
+                'activities' => $totalActivities,
+                'distance' => $totalDistance,
+                'time_seconds' => $totalTimeSeconds,
+                'time_human' => $this->formatDuration($totalTimeSeconds),
+            ],
+        ]);
+    }
+    private function formatDuration(int $seconds): string
+    {
+        $hours = intdiv($seconds, 3600);
+        $minutes = intdiv($seconds % 3600, 60);
+        $seconds = $seconds % 60;
+
+        return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+    }
 }

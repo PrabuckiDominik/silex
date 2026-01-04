@@ -37,10 +37,14 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
     ->name('verification.verify');
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/activities', [ActivityController::class, 'index']);
+    Route::get('/activities/stats', [ActivityController::class, 'stats']);
+    Route::get('/activities/{activity}', [ActivityController::class, 'show']);
     Route::post('/activities/start', [ActivityController::class, 'start']);
     Route::post('/activities/finish/{activity}', [ActivityController::class, 'finish']);
-    Route::delete('/activities/{activity}', [ActivityController::class, 'destroy']); // nowy endpoint
+    Route::delete('/activities/{activity}', [ActivityController::class, 'destroy']);
 });
+
 Route::middleware('auth:sanctum')->controller(NotificationController::class)->group(function () {
     Route::get('/notifications', 'getUserNotifications');
     Route::middleware('role:admin')->post('/notifications/send', 'send');
