@@ -11,8 +11,8 @@ class ActivityController extends Controller
     {
         $activity = Activity::create([
             'user_id' => $request->user()->id,
-            'started_at' => now(),
-        ]);
+            'started_at' => $request->input('started_at') ?? now(),
+            ]);
 
         return response()->json($activity, 201);
     }
@@ -24,7 +24,7 @@ class ActivityController extends Controller
         }
 
         $activity->update([
-            'ended_at' => now(),
+            'ended_at' => $request->input('ended_at') ?? now(),
             'name' => $request->input('name'),
             'type' => $request->input('type'),
             'note' => $request->input('note'),
