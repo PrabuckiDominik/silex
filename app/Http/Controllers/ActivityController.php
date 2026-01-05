@@ -65,6 +65,24 @@ class ActivityController extends Controller
 
         return response()->json($activity);
     }
+    public function add(Request $request)
+    {
+        $data = $request->only(['name', 'type', 'note', 'distance', 'started_at', 'ended_at']);
+
+        $data['started_at'] = $data['started_at'] ?? now();
+        $data['ended_at'] = $data['ended_at'] ?? now();
+
+        $data['user_id'] = $request->user()->id;
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('activities', 'private');
+            $data['photo_path'] = $path;
+        }
+
+        $activity = Activity::create($data);
+
+        return response()->json($activity, 201);
+    }
     public function stats(Request $request)
     {
         $user = $request->user();

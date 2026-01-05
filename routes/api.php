@@ -42,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/activities/{activity}', [ActivityController::class, 'show']);
     Route::get('/activities/{activity}/photo', [ActivityController::class, 'photo'])
         ->name('activities.photo');
+    Route::post('/activities/add', [ActivityController::class, 'add']);
     Route::post('/activities/start', [ActivityController::class, 'start']);
     Route::post('/activities/finish/{activity}', [ActivityController::class, 'finish']);
     Route::delete('/activities/{activity}', [ActivityController::class, 'destroy']);
