@@ -19,3 +19,6 @@ check-if-env-file-exist:
 	  echo ".env file does not exist. Create a .env file and adjust it." ;\
 	  exit 1;\
 	fi; \
+
+test:
+	@docker compose exec app php artisan test
