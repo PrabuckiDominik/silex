@@ -25,11 +25,12 @@ Route::controller(AuthController::class)->group(function () {
 Route::get('/auth/redirect/google', [GoogleAuthController::class, 'redirectToGoogle']);
 Route::get('/auth/callback/google', [GoogleAuthController::class, 'handleGoogleCallback']);
 
-Route::middleware('auth:sanctum')->controller(UserController::class)->group(function () {
-    Route::get('/users', 'index')->middleware('role:admin')->name('users.index');
-    Route::get('/users/{user}', 'show')->name('users.show');
-    Route::put('/users/{user}', 'update')->name('users.update');
-    Route::delete('/users/{user}', 'destroy')->name('users.destroy');
+Route::group(["prefix" => "admin", "middleware" => ["auth:sanctum", "role:admin"]], function (): void {
+
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/{user}', [UserController::class, 'index'])->name('users.show');
+    Route::put('/users/{user}', [UserController::class, 'index'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'index'])->name('users.destroy');
 });
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])

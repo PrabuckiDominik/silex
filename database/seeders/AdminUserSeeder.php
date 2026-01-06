@@ -25,7 +25,7 @@ class AdminUserSeeder extends Seeder
         );
 
         if (!$user->hasRole('admin')) {
-            $user->assignRole($role);
+            $user->syncRoles($role);
         }
     }
 }
