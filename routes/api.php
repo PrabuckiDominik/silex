@@ -6,6 +6,7 @@ use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UpdatePasswordController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\UserProfileController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,10 +28,11 @@ Route::get('/auth/callback/google', [GoogleAuthController::class, 'handleGoogleC
 
 Route::group(["prefix" => "admin", "middleware" => ["auth:sanctum", "role:admin"]], function (): void {
 
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::get('/users/{user}', [UserController::class, 'index'])->name('users.show');
-    Route::put('/users/{user}', [UserController::class, 'index'])->name('users.update');
-    Route::delete('/users/{user}', [UserController::class, 'index'])->name('users.destroy');
+    Route::get("/users", [UserManagementController::class, "index"])->name("users.index");
+    Route::get("/users/{user}", [UserManagementController::class, "show"])->name("users.show");
+    Route::post("/users", [UserManagementController::class, "store"])->name("users.store");
+    Route::put("/users/{user}", [UserManagementController::class, "update"])->name("users.update");
+    Route::delete("/users/{user}", [UserManagementController::class, "destroy"])->name("users.destroy");
 });
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])

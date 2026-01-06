@@ -10,6 +10,7 @@ class CreateUserAction
     public function __invoke(array $userData): User
     {
         $user = new User($userData);
+        $user->syncRoles(['user']);
         $user->save();
         $user->sendEmailVerificationNotification();
         activity()
