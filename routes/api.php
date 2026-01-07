@@ -51,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/activities/{activity}/photo', [ActivityController::class, 'photo'])
         ->name('activities.photo');
     Route::post('/activities/add', [ActivityController::class, 'store']);
+    Route::put('/activities/{activity}', [ActivityController::class, 'update']);
     Route::delete('/activities/{activity}', [ActivityController::class, 'destroy']);
 });
 
