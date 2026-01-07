@@ -7,27 +7,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class Activity extends Model
 {
+    use HasFactory;
 
     protected $fillable = [
         'user_id',
-        'started_at',
-        'ended_at',
         'name',
         'type',
         'note',
         'photo_path',
         'distance',
+        'time', // sekundy
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'started_at' => 'datetime',
-            'ended_at'   => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'time' => 'integer',
+    ];
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
     public function getPhotoUrlAttribute(): ?string

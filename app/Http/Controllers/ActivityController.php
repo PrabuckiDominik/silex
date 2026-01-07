@@ -7,38 +7,39 @@ use Illuminate\Http\Request;
 
 class ActivityController extends Controller
 {
-    public function start(Request $request)
+    public function store(Request $request)
     {
         $activity = Activity::create([
-            'user_id' => $request->user()->id,
-            'started_at' => $request->input('started_at') ?? now(),
-            ]);
+            'user_id'  => $request->user()->id,
+            'name'     => $request->input('name'),
+            'type'     => $request->input('type'),
+            'note'     => $request->input('note'),
+            'photo_path'=> $request->input('photo_path'),
+            'distance' => $request->input('distance'),
+            'time'     => $request->input('time'), // sekundy
+        ]);
 
         return response()->json($activity, 201);
     }
 
-    public function finish(Request $request, Activity $activity)
+    public function update(Request $request, Activity $activity)
     {
         if ($activity->user_id !== $request->user()->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $data = $request->only(['name', 'type', 'note', 'distance']);
-        $data['ended_at'] = $request->input('ended_at') ?? now();
-
-        if ($request->hasFile('photo')) {
-            if ($activity->photo_path) {
-                Storage::disk('private')->delete($activity->photo_path);
-            }
-
-            $path = $request->file('photo')->store('activities', 'private');
-            $data['photo_path'] = $path;
-        }
-
-        $activity->update($data);
+        $activity->update($request->only([
+            'name',
+            'type',
+            'note',
+            'photo_path',
+            'distance',
+            'time',
+        ]));
 
         return response()->json($activity);
     }
+
     public function destroy(Activity $activity)
     {
         if ($activity->user_id !== auth()->id()) {
@@ -47,16 +48,19 @@ class ActivityController extends Controller
 
         $activity->delete();
 
-        return response()->json([
-            'message' => 'Activity deleted successfully'
-        ]);
+        return response()->json(['message' => 'Activity deleted successfully']);
     }
+
     public function index(Request $request)
     {
-        $activities = $request->user()->activities()->orderBy('started_at', 'desc')->get();
-
-        return response()->json($activities);
+        return response()->json(
+            $request->user()
+                ->activities()
+                ->latest()
+                ->get()
+        );
     }
+
     public function show(Activity $activity, Request $request)
     {
         if ($activity->user_id !== $request->user()->id) {
@@ -65,69 +69,39 @@ class ActivityController extends Controller
 
         return response()->json($activity);
     }
-    public function add(Request $request)
-    {
-        $data = $request->only(['name', 'type', 'note', 'distance', 'started_at', 'ended_at']);
 
-        $data['started_at'] = $data['started_at'] ?? now();
-        $data['ended_at'] = $data['ended_at'] ?? now();
-
-        $data['user_id'] = $request->user()->id;
-
-        if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('activities', 'private');
-            $data['photo_path'] = $path;
-        }
-
-        $activity = Activity::create($data);
-
-        return response()->json($activity, 201);
-    }
     public function stats(Request $request)
     {
-        $user = $request->user();
+        $activities = $request->user()->activities()->get();
 
-        $activities = $user->activities()
-            ->whereNotNull('ended_at')
-            ->get();
-
-        $totalActivities = $activities->count();
-
-        $totalDistance = $activities->sum('distance');
-
-        $totalTimeSeconds = $activities->sum(function ($activity) {
-            return $activity->started_at && $activity->ended_at
-                ? $activity->started_at->diffInSeconds($activity->ended_at)
-                : 0;
-        });
+        $totalTime = $activities->sum('time');
 
         $monthly = $activities
-            ->groupBy(fn ($a) => $a->started_at->format('Y-m'))
+            ->groupBy(fn ($a) => $a->created_at->format('Y-m'))
             ->map(function ($group, $month) {
-
-                $time = $group->sum(function ($activity) {
-                    return $activity->started_at->diffInSeconds($activity->ended_at);
-                });
+                $time = $group->sum('time');
 
                 return [
-                    'month' => $month,
-                    'activities' => $group->count(),
-                    'distance' => $group->sum('distance'),
+                    'month'        => $month,
+                    'activities'   => $group->count(),
+                    'distance'     => $group->sum('distance'),
                     'time_seconds' => $time,
-                    'time_human' => $this->formatDuration($time),
+                    'time_human'   => $this->formatDuration($time),
                 ];
             })
             ->values();
 
         return response()->json([
             'overall' => [
-                'activities' => $totalActivities,
-                'distance' => $totalDistance,
-                'time_seconds' => $totalTimeSeconds,
-                'time_human' => $this->formatDuration($totalTimeSeconds),
+                'activities'   => $activities->count(),
+                'distance'     => $activities->sum('distance'),
+                'time_seconds' => $totalTime,
+                'time_human'   => $this->formatDuration($totalTime),
             ],
+            'monthly' => $monthly,
         ]);
     }
+
     public function photo(Activity $activity)
     {
         if ($activity->user_id !== auth()->id()) {
