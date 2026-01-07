@@ -16,7 +16,7 @@ class ActivityController extends Controller
             'note'     => $request->input('note'),
             'photo_path'=> $request->input('photo_path'),
             'distance' => $request->input('distance'),
-            'time'     => $request->input('time'), // sekundy
+            'time'     => $request->input('time'),
         ]);
 
         return response()->json($activity, 201);
