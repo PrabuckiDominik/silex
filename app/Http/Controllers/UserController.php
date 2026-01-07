@@ -18,34 +18,22 @@ class UserController extends Controller
     {
         $this->authorizeResource(User::class, 'user');
     }
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): JsonResponse
     {
         return response()->json(User::latest()->paginate(50));
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(User $user): JsonResponse
     {
         return response()->json(new UserResource($user));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(User $user, UpdateUserRequest $request, UpdateUserAction $updateUserAction): JsonResponse
     {
         return response()->json(['message' => 'Użytkownik zaktualizowany pomyślnie',
             'user' => $updateUserAction($user,$request->validated())], 201);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(User $user): JsonResponse
     {
         return response()->json(['message' => 'Użytkownik został usunięty.',$user->delete()],204);
