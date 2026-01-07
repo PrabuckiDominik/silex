@@ -75,18 +75,47 @@ class ActivityController extends Controller
         $activities = $request->user()->activities()->get();
 
         $totalTime = $activities->sum('time');
+        $totalDistance = $activities->sum('distance');
 
-        $monthly = $activities
-            ->groupBy(fn ($a) => $a->created_at->format('Y-m'))
-            ->map(function ($group, $month) {
+        // Globalny breakdown po typie treningu
+        $typeBreakdown = $activities
+            ->groupBy('type')
+            ->map(function ($group, $type) {
                 $time = $group->sum('time');
-
                 return [
-                    'month'        => $month,
                     'activities'   => $group->count(),
                     'distance'     => $group->sum('distance'),
                     'time_seconds' => $time,
                     'time_human'   => $this->formatDuration($time),
+                ];
+            });
+
+        // Monthly stats z breakdown po typie
+        $monthly = $activities
+            ->groupBy(fn ($a) => $a->created_at->format('Y-m'))
+            ->map(function ($group, $month) {
+                $time = $group->sum('time');
+                $distance = $group->sum('distance');
+
+                $typeBreakdown = $group
+                    ->groupBy('type')
+                    ->map(function ($typeGroup, $type) {
+                        $time = $typeGroup->sum('time');
+                        return [
+                            'activities'   => $typeGroup->count(),
+                            'distance'     => $typeGroup->sum('distance'),
+                            'time_seconds' => $time,
+                            'time_human'   => $this->formatDuration($time),
+                        ];
+                    });
+
+                return [
+                    'month'        => $month,
+                    'activities'   => $group->count(),
+                    'distance'     => $distance,
+                    'time_seconds' => $time,
+                    'time_human'   => $this->formatDuration($time),
+                    'types'        => $typeBreakdown,
                 ];
             })
             ->values();
@@ -94,13 +123,15 @@ class ActivityController extends Controller
         return response()->json([
             'overall' => [
                 'activities'   => $activities->count(),
-                'distance'     => $activities->sum('distance'),
+                'distance'     => $totalDistance,
                 'time_seconds' => $totalTime,
                 'time_human'   => $this->formatDuration($totalTime),
+                'types'        => $typeBreakdown,
             ],
             'monthly' => $monthly,
         ]);
     }
+
 
     public function photo(Activity $activity)
     {
