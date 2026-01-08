@@ -19,7 +19,8 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('/forgot-password',  'sendResetLinkEmail');
     Route::post('/reset-password',  'reset');
     Route::get('/reset-password/{token}', function ($token) {
-        return redirect("https://frontend.example.com/reset-password?token=$token");
+        $email = request('email');
+        return redirect("http://172.31.226.7:5173/reset-password?token=$token&email=$email");
     })->name('password.reset');
 });
 
@@ -47,8 +48,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/activities', [ActivityController::class, 'index']);
     Route::get('/activities/stats', [ActivityController::class, 'stats']);
     Route::get('/activities/{activity}', [ActivityController::class, 'show']);
-    Route::post('/activities/start', [ActivityController::class, 'start']);
-    Route::post('/activities/finish/{activity}', [ActivityController::class, 'finish']);
+    Route::get('/activities/{activity}/photo', [ActivityController::class, 'photo'])
+        ->name('activities.photo');
+    Route::post('/activities/add', [ActivityController::class, 'store']);
+    Route::put('/activities/{activity}', [ActivityController::class, 'update']);
     Route::delete('/activities/{activity}', [ActivityController::class, 'destroy']);
 });
 
