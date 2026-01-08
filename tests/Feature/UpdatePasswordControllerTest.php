@@ -68,7 +68,7 @@ class UpdatePasswordControllerTest extends TestCase
                 'message' => __('passwords.same_as_current'),
             ]);
 
-        // Password should remain unchanged
+
         $this->assertTrue(Hash::check('same-password', $user->fresh()->password));
     }
 

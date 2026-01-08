@@ -40,7 +40,7 @@ class UserProfileControllerTest extends TestCase
 
         $newData = [
             'name' => 'Updated Name',
-            'email' => 'new-email@example.com', // required if email is unique
+            'email' => 'new-email@example.com',
         ];
 
         $response = $this->putJson('/api/profile', $newData);

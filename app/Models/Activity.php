@@ -16,7 +16,7 @@ class Activity extends Model
         'note',
         'photo_path',
         'distance',
-        'time', // sekundy
+        'time',
     ];
 
     protected $casts = [

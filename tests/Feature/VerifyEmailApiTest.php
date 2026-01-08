@@ -23,7 +23,6 @@ class VerifyEmailApiTest extends TestCase
             'email_verified_at' => null,
         ]);
 
-        // Generate a signed URL for API route
         $url = URL::signedRoute(
             'verification.verify',
             ['id' => $user->id, 'hash' => sha1($user->email)]
@@ -36,10 +35,8 @@ class VerifyEmailApiTest extends TestCase
                 'message' => 'Email successfully verified.',
             ]);
 
-        // Check email is marked verified
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
 
-        // Event should be fired
         Event::assertDispatched(Verified::class);
     }
 
@@ -74,7 +71,6 @@ class VerifyEmailApiTest extends TestCase
             'email_verified_at' => null,
         ]);
 
-        // URL with wrong hash
         $url = URL::signedRoute(
             'verification.verify',
             ['id' => $user->id, 'hash' => 'invalidhash']

@@ -77,7 +77,7 @@ class ActivityController extends Controller
         $totalTime = $activities->sum('time');
         $totalDistance = $activities->sum('distance');
 
-        // Globalny breakdown po typie treningu
+
         $typeBreakdown = $activities
             ->groupBy('type')
             ->map(function ($group, $type) {
@@ -90,7 +90,7 @@ class ActivityController extends Controller
                 ];
             });
 
-        // Monthly stats z breakdown po typie
+
         $monthly = $activities
             ->groupBy(fn ($a) => $a->created_at->format('Y-m'))
             ->map(function ($group, $month) {

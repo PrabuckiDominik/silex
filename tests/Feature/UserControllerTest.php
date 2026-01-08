@@ -17,12 +17,10 @@ class UserControllerTest extends TestCase
     {
         parent::setUp();
 
-        // Let admin bypass all policies in tests
         Gate::before(function ($user, $ability) {
             return $this->userHasAdminRole($user) ? true : null;
         });
 
-        // Make sure the admin role exists
         if (!DB::table('roles')->where('name', 'admin')->exists()) {
             DB::table('roles')->insert(['name' => 'admin']);
         }
@@ -53,7 +51,7 @@ class UserControllerTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function non_admin_cannot_access_user_routes()
     {
-        $user = User::factory()->create(); // no roles
+        $user = User::factory()->create();
         $otherUser = User::factory()->create();
 
         Sanctum::actingAs($user);
